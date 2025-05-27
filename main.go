@@ -1,11 +1,19 @@
 package main
 
+// #cgo CFLAGS: -Wall -Wextra
 // #include <stdint.h>
+// typedef struct {
+//     int32_t  block_header_height;
+//     int32_t  mweb_header_height;
+//     int32_t  mweb_utxos_height;
+//     uint32_t block_time;
+// } StatusResponse;
 import "C"
 
 import (
 	"fmt"
 	"github.com/ltcmweb/mwebd"
+	"github.com/ltcmweb/mwebd/proto"
 	"sync"
 )
 
@@ -60,6 +68,27 @@ func StopServer(id C.uintptr_t) {
 	serverRegistryMu.Lock()
 	delete(serverRegistry, uintptr(id))
 	serverRegistryMu.Unlock()
+}
+
+type StatusResponse struct {
+}
+
+//export Status
+func Status(id C.uintptr_t) *C.StatusResponse {
+	server := serverRegistry[uintptr(id)]
+	response, err := server.Status(nil, &proto.StatusRequest{})
+	if err != nil {
+		panic(err)
+	}
+
+	s := C.malloc(C.sizeof_StatusResponse)
+	resp := (*C.StatusResponse)(s)
+	resp.block_header_height = C.int32_t(response.BlockHeaderHeight)
+	resp.mweb_header_height = C.int32_t(response.MwebHeaderHeight)
+	resp.mweb_utxos_height = C.int32_t(response.MwebUtxosHeight)
+	resp.block_time = C.uint32_t(response.BlockTime)
+	return resp
+
 }
 
 func main() {}
