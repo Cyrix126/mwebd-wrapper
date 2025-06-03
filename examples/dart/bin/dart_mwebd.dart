@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:isolate';
 import 'package:ffi/ffi.dart';
 import 'dart:io';
 
@@ -7,7 +8,11 @@ final DynamicLibrary lib =
         ? DynamicLibrary.open('../../libmwebd.so')
         : Platform.isMacOS
         ? DynamicLibrary.open('../../libmwebd.dylib')
-        : DynamicLibrary.open('../../libmwebd.dll');
+        : Platform.isWindows
+        ? DynamicLibrary.open('../../libmwebd.dll')
+        : Platform.isAndroid
+        ? DynamicLibrary.open('../../libmwebd_android.so')
+        : DynamicLibrary.open('../../libmwebd.a');
 
 typedef CreateServerC =
     Int64 Function(
@@ -49,13 +54,16 @@ String? callGoFunction(Pointer<Utf8> Function() func) {
 void main() {
   final server = createServer(
     'mainnet'.toNativeUtf8(),
-    '/home/lm/git/mwebd'.toNativeUtf8(),
+    '.'.toNativeUtf8(),
     ''.toNativeUtf8(),
     ''.toNativeUtf8(), // Empty proxy
   );
+  Isolate.run(() {
+    startServer(server, 12345);
+  });
 
-  final port = startServer(server, 12345); // Port 0 = auto-select
-  print('Server started on port: $port');
-
-  // stopServer(server);
+  print('Server started');
+  sleep(Duration(seconds: 4));
+  stopServer(server);
+  print('Server stopped');
 }
