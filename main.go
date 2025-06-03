@@ -11,10 +11,12 @@ package main
 import "C"
 
 import (
+	"context"
 	"fmt"
+	"sync"
+
 	"github.com/ltcmweb/mwebd"
 	"github.com/ltcmweb/mwebd/proto"
-	"sync"
 )
 
 // Global registry to keep Go objects alive
@@ -70,13 +72,10 @@ func StopServer(id C.uintptr_t) {
 	serverRegistryMu.Unlock()
 }
 
-type StatusResponse struct {
-}
-
 //export Status
 func Status(id C.uintptr_t) *C.StatusResponse {
 	server := serverRegistry[uintptr(id)]
-	response, err := server.Status(nil, &proto.StatusRequest{})
+	response, err := server.Status(context.Background(), &proto.StatusRequest{})
 	if err != nil {
 		panic(err)
 	}
