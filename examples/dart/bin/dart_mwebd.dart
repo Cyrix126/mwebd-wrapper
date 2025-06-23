@@ -1,5 +1,4 @@
 import 'dart:ffi';
-import 'dart:isolate';
 import 'package:ffi/ffi.dart';
 import 'dart:io';
 
@@ -43,27 +42,22 @@ typedef StopServerDart = void Function(int server);
 final StopServerDart stopServer =
     lib.lookup<NativeFunction<StopServerC>>('StopServer').asFunction();
 
-String? callGoFunction(Pointer<Utf8> Function() func) {
-  final ptr = func();
-  if (ptr.address == 0) return null;
-  final result = ptr.toDartString();
-  calloc.free(ptr);
-  return result;
-}
-
 void main() {
-  final server = createServer(
-    'mainnet'.toNativeUtf8(),
-    '.'.toNativeUtf8(),
+  final test = createServer(
+    'testnet'.toNativeUtf8(),
+    '/home/lm/Desktop/testnet'.toNativeUtf8(),
     ''.toNativeUtf8(),
-    ''.toNativeUtf8(), // Empty proxy
+    ''.toNativeUtf8(),
   );
-  Isolate.run(() {
-    startServer(server, 12345);
-  });
-
-  print('Server started');
-  sleep(Duration(seconds: 4));
-  stopServer(server);
-  print('Server stopped');
+  startServer(test, 12345);
+  final main = createServer(
+    ''.toNativeUtf8(),
+    '/home/lm/Desktop/mainnet'.toNativeUtf8(),
+    ''.toNativeUtf8(),
+    ''.toNativeUtf8(),
+  );
+  startServer(main, 12346);
+  sleep(Duration(seconds: 30));
+  stopServer(main);
+  stopServer(test);
 }

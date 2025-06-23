@@ -51,16 +51,11 @@ func CreateServer(chain, dataDir, peer, proxy *C.char) C.uintptr_t {
 }
 
 //export StartServer
-func StartServer(id C.uintptr_t, port C.int) C.int {
+func StartServer(id C.uintptr_t, port C.int) {
 	serverRegistryMu.Lock()
 	server := serverRegistry[uintptr(id)]
-	// go waitForParent(server)
-	selectedPort, err := server.Start(int(port))
-	if err != nil {
-		panic(err)
-	}
+	go server.Start(int(port))
 	serverRegistryMu.Unlock()
-	return C.int(selectedPort)
 }
 
 //export StopServer
