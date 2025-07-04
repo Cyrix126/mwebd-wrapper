@@ -72,22 +72,17 @@ func StopServer(id C.uintptr_t) {
 	serverRegistryMu.Unlock()
 }
 
-//export Status
-func Status(id C.uintptr_t) *C.StatusResponse {
-	server := serverRegistry[uintptr(id)]
-	response, err := server.Status(context.Background(), &proto.StatusRequest{})
-	if err != nil {
-		panic(err)
-	}
+func Status(id C.uintptr_t, out *C.StatusResponse) {
+    server := serverRegistry[uintptr(id)]
+    response, err := server.Status(context.Background(), &proto.StatusRequest{})
+    if err != nil {
+        panic(err)
+    }
 
-	s := C.malloc(C.sizeof_StatusResponse)
-	resp := (*C.StatusResponse)(s)
-	resp.block_header_height = C.int32_t(response.BlockHeaderHeight)
-	resp.mweb_header_height = C.int32_t(response.MwebHeaderHeight)
-	resp.mweb_utxos_height = C.int32_t(response.MwebUtxosHeight)
-	resp.block_time = C.uint32_t(response.BlockTime)
-	return resp
-
+    out.block_header_height = C.int32_t(response.BlockHeaderHeight)
+    out.mweb_header_height = C.int32_t(response.MwebHeaderHeight)
+    out.mweb_utxos_height = C.int32_t(response.MwebUtxosHeight)
+    out.block_time = C.uint32_t(response.BlockTime)
 }
 
 func main() {}
