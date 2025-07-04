@@ -72,6 +72,7 @@ func StopServer(id C.uintptr_t) {
 	serverRegistryMu.Unlock()
 }
 
+//export Status
 func Status(id C.uintptr_t, out *C.StatusResponse) {
     server := serverRegistry[uintptr(id)]
     response, err := server.Status(context.Background(), &proto.StatusRequest{})
